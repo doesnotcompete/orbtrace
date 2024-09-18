@@ -36,8 +36,8 @@ class CRG(Module, AutoCSR):
         self.submodules.pll = pll = ECP5PLL()
         self.comb += pll.reset.eq(~por_done | self.rst)
         pll.register_clkin(clk_in, clk_in_freq)
-        pll.create_clkout(self.cd_sys2x, 50e6, margin = 0)
-        pll.create_clkout(self.cd_sys2x_90, 100e6, margin = 0, phase = 1)
+        pll.create_clkout(self.cd_sys2x, 2*sys_clk_freq, margin = 0)
+        pll.create_clkout(self.cd_sys2x_90, 2*sys_clk_freq, margin = 0, phase = 1)
 
         self._slip_hr2x = CSRStorage()
         self._slip_hr2x90 = CSRStorage()
@@ -93,10 +93,12 @@ class CRG(Module, AutoCSR):
 
     def add_ulpi(self, platform):
         self.clock_domains.cd_ulpi = ClockDomain()
+        ulpi = platform.request('ulpi', 0)
+
         self.pll.create_clkout(self.cd_ulpi, 60e6)
 
         ulpi_clk = ClockSignal("ulpi")
-        self.specials += DDROutput(1, 0, platform.request("ulpi", 0).clk, ulpi_clk)
+        self.specials += DDROutput(1, 0, ulpi.clk, ulpi_clk)
 
     def add_debug(self):
         self.clock_domains.cd_debug = ClockDomain()

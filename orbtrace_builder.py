@@ -54,7 +54,7 @@ def main():
     parser_orbtrace.add_argument('--without-trace', action = 'store_false', dest = 'with_trace')
     parser_orbtrace.add_argument('--with-target-power', action = 'store_true', help = 'Enable target power control')
     parser_orbtrace.add_argument('--without-target-power', action = 'store_false', dest = 'with_target_power')
-    parser_orbtrace.add_argument('--with-dfu', choices = ['bootloader', 'runtime'], help = 'Enable DFU support')
+    parser_orbtrace.add_argument('--with-dfu', choices = ['bootloader', 'runtime'], help = 'Enable DFU support', default = False)
     parser_orbtrace.add_argument('--with-test-io', action = 'store_true', help = 'Enable test IO')
 
     parser_orbtrace.add_argument('--usb-vid', type = lambda x: int(x, 16), default = 0x1209, help = 'USB Vendor ID')

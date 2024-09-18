@@ -39,9 +39,9 @@ _io = [
     ),
 
     ("ulpi", 0,
-        Subsignal("rst",  Pins("82")),
-        Subsignal("clk",  Pins("84")),
+        Subsignal("rst_n",  Pins("82")),
         Subsignal("dir",  Pins("80")),
+        Subsignal("clk",  Pins("84")),
         Subsignal("nxt",  Pins("79")),
         Subsignal("stp",  Pins("81")),
         Subsignal("data", Pins("78 77 76 74 73 72 71 69")),
@@ -142,23 +142,23 @@ class Platform(LatticeECP5Platform):
 
     def add_leds(self, soc):
         soc.led_status = self.request('rgb_led', 0)
-    #
-    # def add_platform_specific(self, soc):
-    #     # HyperRAM
-    #     cdr = ClockDomainsRenamer({
-    #         'hr':      'sys',
-    #         'hr2x':    'sys2x',
-    #         'hr_90':   'sys_90',
-    #         'hr2x_90': 'sys2x_90',
-    #     })
-    #
-    #     pads = self.request('hyperram')
-    #
-    #     soc.submodules.hyperram = cdr(HyperRAM(pads))
-    #     soc.add_csr('hyperram')
-    #     soc.bus.add_slave('hyperram', soc.hyperram.bus, SoCRegion(origin = soc.mem_map.get('hyperram', 0x20000000), size = 0x800000))
-    #
-    #     soc.comb += pads.rst_n.eq(1)
+
+    def add_platform_specific(self, soc):
+        # HyperRAM
+        cdr = ClockDomainsRenamer({
+            'hr':      'sys',
+            'hr2x':    'sys2x',
+            'hr_90':   'sys_90',
+            'hr2x_90': 'sys2x_90',
+        })
+
+        pads = self.request('hyperram')
+
+        soc.submodules.hyperram = cdr(HyperRAM(pads))
+        soc.add_csr('hyperram')
+        soc.bus.add_slave('hyperram', soc.hyperram.bus, SoCRegion(origin = soc.mem_map.get('hyperram', 0x20000000), size = 0x7FFFFF))
+
+        soc.comb += pads.rst_n.eq(1)
 
     def do_finalize(self, fragment):
         LatticeECP5Platform.do_finalize(self, fragment)
@@ -177,6 +177,7 @@ class Platform(LatticeECP5Platform):
         return {
             'default': {
                 'uart_name': 'serial',
+                'uart_baudrate': 1e6,
                 'with_debug': True,
                 'with_trace': True,
                 'with_target_power': False,

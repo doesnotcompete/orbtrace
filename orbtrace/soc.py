@@ -59,12 +59,12 @@ class OrbSoC(SoCCore):
         # CRG
         self.submodules.crg = platform.get_crg(sys_clk_freq)
 
-        # uart_phy = UARTPHY(platform.request('serial'), sys_clk_freq, 115200)
+        # uart_phy = UARTPHY(platform.request("serial"), sys_clk_freq, 115200)
         # self.submodules.uart = UART(uart_phy)
         # self.submodules.uart_phy = uart_phy
 
         # Flash
-        self.add_flash()
+        # self.add_flash()
 
         # Amaranth wrapper
         self.add_wrapper()
@@ -688,11 +688,11 @@ class OrbSoC(SoCCore):
         self.submodules += cdc, pipeline
 
     def add_usb_serialnumber(self):
-        handler = USBSerialNumberHandler(self.usb_serial_idx, len(self.flash_uid.uid))
+        handler = USBSerialNumberHandler(self.usb_serial_idx, 4)
 
         self.add_usb_control_handler(handler)
 
-        self.comb += self.wrapper.from_amaranth(handler.serial).eq(self.flash_uid.uid)
+        self.comb += self.wrapper.from_amaranth(handler.serial).eq(1)
 
         self.usb_blacklist.append(lambda setup: \
             (setup.type == USBRequestType.STANDARD) & \
