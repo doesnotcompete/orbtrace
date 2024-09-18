@@ -8,6 +8,7 @@ from pathlib import Path
 from litex.soc.integration.soc_core import soc_core_args, soc_core_argdict
 from litex.soc.integration.builder import Builder, builder_args, builder_argdict
 from litex.build.lattice.trellis import trellis_args, trellis_argdict
+from litex.soc.doc import generate_docs
 
 from orbtrace.soc import OrbSoC
 
@@ -18,7 +19,7 @@ def main():
     parser_orbtrace = parser.add_argument_group('Orbtrace options')
     parser_platform = parser.add_argument_group('Platform options')
 
-    parser_platform.add_argument("--platform", choices = ['ecpix5', 'orbtrace_mini'], required = True, help = 'Select platform')
+    parser_platform.add_argument("--platform", choices = ['ecpix5', 'orbtrace_mini', 'doesnotcompete'], required = True, help = 'Select platform')
     parser_platform.add_argument("--profile", default = 'default', help = 'Select profile (argument defaults)')
 
     args, _ = parser.parse_known_args()
@@ -29,6 +30,9 @@ def main():
     elif args.platform == 'orbtrace_mini':
         from orbtrace.platforms.orbtrace_mini import Platform
 
+    elif args.platform == 'doesnotcompete':
+        from orbtrace.platforms.doesnotcompete import Platform
+
     Platform.add_arguments(parser_platform)
 
     # Add help after selecting platform to make sure all arguments are included
@@ -38,7 +42,7 @@ def main():
     parser_actions.add_argument("--load",          action="store_true", help="Load bitstream")
     parser_actions.add_argument("--flash",         action="store_true", help="Flash bitstream to SPI Flash")
 
-    parser_platform.add_argument("--sys-clk-freq",  default=75e6,        help="System clock frequency (default: 75MHz)")
+    parser_platform.add_argument("--sys-clk-freq",  default=60e6,        help="System clock frequency (default: 60MHz)")
 
     builder_args(parser.add_argument_group('Builder options'))
     soc_core_args(parser.add_argument_group('SoC core options'))
@@ -96,8 +100,6 @@ def main():
     builder.add_software_package('liblitehyperbus', str(Path('liblitehyperbus').absolute()))
     builder.add_software_library('liblitehyperbus')
 
-    builder.build(**trellis_argdict(args), run=args.build)
-
     if args.load:
         prog = soc.platform.create_programmer()
         prog.load_bitstream(os.path.join(builder.gateware_dir, soc.build_name + ".bit"))
@@ -105,6 +107,10 @@ def main():
     if args.flash:
         prog = soc.platform.create_programmer()
         prog.flash(None, os.path.join(builder.gateware_dir, soc.build_name + ".bit"))
+
+    vns = builder.build(**trellis_argdict(args), run=args.build)
+    soc.do_exit(vns)
+    generate_docs(soc, "build/docs")
 
 if __name__ == "__main__":
     main()

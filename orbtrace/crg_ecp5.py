@@ -4,6 +4,7 @@ from migen.genlib.resetsync import AsyncResetSynchronizer
 from litex.soc.cores.clock import ECP5PLL
 
 from litex.soc.interconnect.csr import AutoCSR, CSRStorage
+from litex.build.io import  DDROutput
 
 class CRG(Module, AutoCSR):
     def __init__(self, platform, sys_clk_freq):
@@ -35,8 +36,8 @@ class CRG(Module, AutoCSR):
         self.submodules.pll = pll = ECP5PLL()
         self.comb += pll.reset.eq(~por_done | self.rst)
         pll.register_clkin(clk_in, clk_in_freq)
-        pll.create_clkout(self.cd_sys2x, 2*sys_clk_freq, margin = 0)
-        pll.create_clkout(self.cd_sys2x_90, 2*sys_clk_freq, margin = 0, phase = 1)
+        pll.create_clkout(self.cd_sys2x, 50e6, margin = 0)
+        pll.create_clkout(self.cd_sys2x_90, 100e6, margin = 0, phase = 1)
 
         self._slip_hr2x = CSRStorage()
         self._slip_hr2x90 = CSRStorage()
@@ -81,16 +82,25 @@ class CRG(Module, AutoCSR):
 
         # PLL2
         self.submodules.pll2 = pll2 = ECP5PLL()
+        # clk_in60 = platform.request("clk60")
         self.comb += pll2.reset.eq(~por_done | self.rst)
+        # pll2.register_clkin(clk_in60, 60e6)
         pll2.register_clkin(clk_in, clk_in_freq)
 
     def add_usb(self):
         self.clock_domains.cd_usb = ClockDomain()
-        self.pll.create_clkout(self.cd_usb, 60e6)
+        self.pll2.create_clkout(self.cd_usb, 60e6)
+
+    def add_ulpi(self, platform):
+        self.clock_domains.cd_ulpi = ClockDomain()
+        self.pll.create_clkout(self.cd_ulpi, 60e6)
+
+        ulpi_clk = ClockSignal("ulpi")
+        self.specials += DDROutput(1, 0, platform.request("ulpi", 0).clk, ulpi_clk)
 
     def add_debug(self):
         self.clock_domains.cd_debug = ClockDomain()
-        self.pll2.create_clkout(self.cd_debug, 100e6)
+        self.pll2.create_clkout(self.cd_debug, 60e6)
 
         self.add_swo()
 
@@ -98,7 +108,7 @@ class CRG(Module, AutoCSR):
         self.clock_domains.cd_swo = ClockDomain()
         self.clock_domains.cd_swo2x = ClockDomain()
 
-        self.pll2.create_clkout(self.cd_swo2x, 250e6, margin = 0)
+        self.pll2.create_clkout(self.cd_swo2x, 120e6, margin = 0)
 
         self.specials += [
             Instance("CLKDIVF",

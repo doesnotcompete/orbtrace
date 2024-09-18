@@ -1,3 +1,7 @@
+import uuid
+
+from litex.soc.cores.uart import UART, UARTPHY
+
 from orbtrace.usb_serialnumber import USBSerialNumberHandler
 from orbtrace.test_io import TestIO
 from migen import *
@@ -55,6 +59,10 @@ class OrbSoC(SoCCore):
         # CRG
         self.submodules.crg = platform.get_crg(sys_clk_freq)
 
+        # uart_phy = UARTPHY(platform.request('serial'), sys_clk_freq, 115200)
+        # self.submodules.uart = UART(uart_phy)
+        # self.submodules.uart_phy = uart_phy
+
         # Flash
         self.add_flash()
 
@@ -111,8 +119,8 @@ class OrbSoC(SoCCore):
             self.add_test_io()
 
         # Button handler
-        if not bootloader_auto_reset and not with_test_io:
-            self.add_button_handler()
+        # if not bootloader_auto_reset and not with_test_io:
+        #     self.add_button_handler()
 
         # USB version interface
         self.add_usb_version()
@@ -360,10 +368,10 @@ class OrbSoC(SoCCore):
         is_v2 = Signal()
         self.comb += self.cmsis_dap.is_v2.eq(is_v2)
 
-        can = self.platform.request('gpio', 0)
-        self.comb += can.data.eq(self.cmsis_dap.can)
-        if hasattr(can, 'dir'):
-            self.comb += can.dir.eq(1)
+        # can = self.platform.request('gpio', 0)
+        # self.comb += can.data.eq(self.cmsis_dap.can)
+        # if hasattr(can, 'dir'):
+        #     self.comb += can.dir.eq(1)
 
         if with_v1 and with_v2:
             out_mux = Multiplexer(stream_desc, 2)

@@ -178,21 +178,21 @@ class Platform(LatticePlatform):
         # I2C
         soc.submodules.i2c = I2CMaster(self.request('i2c'))
 
-        # HyperRAM
-        cdr = ClockDomainsRenamer({
-            'hr':      'sys',
-            'hr2x':    'sys2x',
-            'hr_90':   'sys_90',
-            'hr2x_90': 'sys2x_90',
-        })
-
-        pads = self.request('hyperram')
-
-        soc.submodules.hyperram = cdr(HyperRAM(pads))
-        soc.add_csr('hyperram')
-        soc.bus.add_slave('hyperram', soc.hyperram.bus, SoCRegion(origin = soc.mem_map.get('hyperram', 0x20000000), size = 0x800000))
-
-        soc.comb += pads.rst_n.eq(1)
+        # # HyperRAM
+        # cdr = ClockDomainsRenamer({
+        #     'hr':      'sys',
+        #     'hr2x':    'sys2x',
+        #     'hr_90':   'sys_90',
+        #     'hr2x_90': 'sys2x_90',
+        # })
+        #
+        # pads = self.request('hyperram')
+        #
+        # soc.submodules.hyperram = cdr(HyperRAM(pads))
+        # soc.add_csr('hyperram')
+        # soc.bus.add_slave('hyperram', soc.hyperram.bus, SoCRegion(origin = soc.mem_map.get('hyperram', 0x20000000), size = 0x800000))
+        #
+        # soc.comb += pads.rst_n.eq(1)
 
     def create_programmer(self):
         return OpenFPGALoader('ecpix5')
